@@ -102,7 +102,7 @@ function startApp() {
         const kinveyRegisterUrl = kinveyBaseUrl + "user/" + kinveyAppKey + "/";
         
         const kinveyAuthHeaders = {
-            'Authorization': ': "Basic " + btoa(kinveyAppKey + ":" + kinveyAppSecret),
+            'Authorization': "Basic " + btoa(kinveyAppKey + ":" + kinveyAppSecret),
         };
 
         let userData = {
