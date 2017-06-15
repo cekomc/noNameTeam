@@ -10,12 +10,17 @@ function startApp() {
     $("#linkHome").click(showHomeView);
     $("#linkLogin").click(showLoginView);
     $("#linkRegister").click(showRegisterView);
-
+    $("#linkListAds").click(listAdverts);
     $("#linkLogout").click(logoutUser);
 
     // Bind the form submit buttons
     $("#buttonLoginUser").click(loginUser);
     $("#buttonRegisterUser").click(registerUser);
+	
+	const kinveyBaseUrl = "https://mock.api.com/";
+    const kinveyAppKey = "kid_rk";
+    const kinveyAppSecret = "736804a668";
+
 
 
     function showView(viewName) {
@@ -31,11 +36,13 @@ function startApp() {
             // No logged in user
             $("#linkLogin").show();
             $("#linkRegister").show();
+			$("#linkListAds").hide();
             $("#linkLogout").hide();
         } else {
             // We have logged in user
             $("#linkLogin").hide();
             $("#linkRegister").hide();
+		    $("#linkListAds").show();
             $("#linkLogout").show();
         }
     }
@@ -57,9 +64,10 @@ function startApp() {
 
     // user/login
     function loginUser() {
-        const kinveyLoginUrl = "https://mock.backend.com/user/kid_rk/login";
+        const kinveyLoginUrl = kinveyBaseUrl + "user/" + kinveyAppKey + "/login";
+
         const kinveyAuthHeaders = {
-            'Authorization': "Basic " + btoa("kid_rk:736804a668"),
+            'Authorization': "Basic " + btoa(kinveyAppKey + ":" + kinveyAppSecret),
         };
         let userData = {
             username: $('#formLogin input[name=username]').val(),
@@ -78,6 +86,7 @@ function startApp() {
             saveAuthInSession(userInfo);
             showHideMenuLinks();
             showHomeView();
+			listAdverts();
         }
     }
 
@@ -90,9 +99,10 @@ function startApp() {
 
     // user/register
     function registerUser() {
-        const kinveyRegisterUrl = "https://mock.backend.com/user/kid_rk/";
+        const kinveyRegisterUrl = kinveyBaseUrl + "user/" + kinveyAppKey + "/";
+        
         const kinveyAuthHeaders = {
-            'Authorization': "Basic " + btoa("kid_rk:736804a668"),
+            'Authorization': ': "Basic " + btoa(kinveyAppKey + ":" + kinveyAppSecret),
         };
 
         let userData = {
@@ -113,6 +123,7 @@ function startApp() {
             saveAuthInSession(userInfo);
             showHideMenuLinks();
             showHomeView();
+			listAdverts();
         }
     }
 
@@ -123,4 +134,48 @@ function startApp() {
         showHideMenuLinks();
         showHomeView();
     }
+	
+
+    // advertisement/all
+    function listAdverts() {
+        $('#ads').empty();
+        showView('viewAds');
+
+        const kinveyAdvertsUrl = kinveyBaseUrl + "appdata/" + kinveyAppKey + "/adverts";
+        const kinveyAuthHeaders = {
+            'Authorization': "Kinvey " + sessionStorage.getItem('authToken'),
+        };
+        $.ajax({
+            method: "GET",
+            url: kinveyAdvertsUrl,
+            headers: kinveyAuthHeaders,
+            success: loadAdvertsSuccess
+        });
+
+        function loadAdvertsSuccess(adverts) {
+            if (adverts.length === 0) {
+                $('#ads').text('No advertisements available.');
+            } else {
+                let advertsTable = $('<table>')
+                    .append($('<tr>').append(
+                        '<th>Title</th>',
+                        '<th>Publisher</th>',
+                        '<th>Date Published</th>',
+                        '<th>Price</th>')
+                    );
+
+                for (let advert of adverts) {
+                    advertsTable.append($('<tr>').append(
+                        $('<td>').text(advert.title),
+                        $('<td>').text(advert.publisher),
+                        $('<td>').text(advert.datePublished),
+                        $('<td>').text(advert.price)
+                    ));
+                }
+
+                $('#ads').append(advertsTable);
+            }
+        }
+    }
+
 }
